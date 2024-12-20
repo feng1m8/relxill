@@ -308,7 +308,7 @@ double *get_rzone_grid(double rmin, double rmax, int nzones, double h, int *stat
 }
 
 /** get the relxill table path (dynamically from env variable)  **/
-char *get_relxill_table_path(void) {
+char *get_relxill_table_path_(void) {
   char *path;
   path = getenv("RELXILL_TABLE_PATH");
   if (path != NULL) {
@@ -317,6 +317,7 @@ char *get_relxill_table_path(void) {
     return RELXILL_TABLE_PATH;
   }
 }
+char *(*get_relxill_table_path)(void) = get_relxill_table_path_;
 
 /** check if we are currently debugging the model **/
 int is_debug_run(void) {

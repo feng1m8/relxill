@@ -120,7 +120,7 @@ double gstar2ener(double g, double gmin, double gmax, double ener);
 void rebin_spectrum(const double *ener, double *flu, int nbins, const double *ener0, const double *flu0, int nbins0);
 
 /** get the relxill table path (dynamically from env variable)  **/
-char *get_relxill_table_path(void);
+extern char *(*get_relxill_table_path)(void);
 
 /** get the number of zones **/
 int get_num_zones(int model_type, int emis_type, int ion_grad_type);
