@@ -24,7 +24,7 @@
  */
 
 
-#include "cfitsio.h"
+#include <fitsio.h>
 // #include "stdio.h"
 //#include "Relbase.h"
 #include "Rellp_Extended.h"

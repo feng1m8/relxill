@@ -35,17 +35,21 @@ set(SOURCE_FILES ${SOURCE_FILES} ${CONFIG_FILE})
 
 set(EXEC_FILES_CPP test_sta)
 
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(cfitsio REQUIRED IMPORTED_TARGET cfitsio)
+pkg_check_modules(fftw3 REQUIRED IMPORTED_TARGET fftw3)
+
 foreach (execfile ${EXEC_FILES_CPP})
     add_executable(${execfile} ${execfile}.cpp ${SOURCE_FILES} ${CONFIG_FILE} )
-    target_link_libraries(${execfile} cfitsio fftw3 m)
-    target_include_directories(${execfile} PUBLIC "${PROJECT_BINARY_DIR}" )  # necessary to find config file
+    target_link_libraries(${execfile} PkgConfig::cfitsio PkgConfig::fftw3)
+    target_include_directories(${execfile} PUBLIC "${PROJECT_BINARY_DIR}" ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})  # necessary to find config file
 endforeach (execfile ${EXEC_FILES_CPP})
 
 ### RELXILL LIBRARY ###
 set(LIBNAME Relxill)
 add_library(${LIBNAME} ${SOURCE_FILES} ${CONFIG_FILE})
-target_include_directories(${LIBNAME} PUBLIC "${PROJECT_BINARY_DIR}")
-target_link_libraries(${LIBNAME} cfitsio fftw3 m)
+target_include_directories(${LIBNAME} PUBLIC "${PROJECT_BINARY_DIR}" ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(${LIBNAME} PkgConfig::cfitsio PkgConfig::fftw3)
 ########################
 
 
@@ -57,19 +61,19 @@ set(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(LMODEL_NAME lmodel_relxill.dat)
 if (DEFINED ENV{RELXILL_STABLE})
     add_custom_command(
-            OUTPUT ${SRC_DIR}/${LMODEL_NAME}
-            COMMAND cp ${SRC_DIR}/modelfiles/lmodel_relxill_public.dat ${SRC_DIR}/${LMODEL_NAME}
-            COMMAND echo " ****** Creating lmodel_relxill.dat ONLY for STABLE RELEASE MODELS ******"
+            OUTPUT ${LMODEL_NAME}
+            COMMAND ${CMAKE_COMMAND} -E copy ${SRC_DIR}/modelfiles/lmodel_relxill_public.dat ${LMODEL_NAME}
+            COMMAND ${CMAKE_COMMAND} -E echo " ****** Creating lmodel_relxill.dat ONLY for STABLE RELEASE MODELS ******"
             DEPENDS ${SRC_DIR}/modelfiles/lmodel_relxill_public.dat
             USES_TERMINAL
     )
 
 else()
     add_custom_command(
-            OUTPUT ${SRC_DIR}/${LMODEL_NAME}
-            COMMAND cp ${SRC_DIR}/modelfiles/lmodel_relxill_public.dat ${SRC_DIR}/${LMODEL_NAME}
-            COMMAND cat ${SRC_DIR}/modelfiles/lmodel_relxill_devel.dat >> ${SRC_DIR}/${LMODEL_NAME}
-            COMMAND echo " ****** Creating lmodel_relxill.dat for ALL MODELS ******"
+            OUTPUT ${LMODEL_NAME}
+            COMMAND ${CMAKE_COMMAND} -E copy ${SRC_DIR}/modelfiles/lmodel_relxill_public.dat ${LMODEL_NAME}
+            COMMAND ${CMAKE_COMMAND} -E cat ${SRC_DIR}/modelfiles/lmodel_relxill_devel.dat >> ${LMODEL_NAME}
+            COMMAND ${CMAKE_COMMAND} -E echo " ****** Creating lmodel_relxill.dat for ALL MODELS ******"
             DEPENDS ${SRC_DIR}/modelfiles/lmodel_relxill_public.dat
             DEPENDS ${SRC_DIR}/modelfiles/lmodel_relxill_devel.dat
             USES_TERMINAL
@@ -82,12 +86,13 @@ add_custom_target(lmodeldat ALL DEPENDS ${LMODEL_NAME})
 
 
 ### Target: XSPEC_WRAPPER ###
+find_package(Python REQUIRED Interpreter)
 add_custom_command(
-        OUTPUT ${SRC_DIR}/xspec_wrapper_lmodels.cpp ${SRC_DIR}/xspec_wrapper_lmodels.h
-        COMMAND ${SRC_DIR}/create_wrapper_xspec.py
-        ${SRC_DIR}/${LMODEL_NAME} ${SRC_DIR}/xspec_wrapper_lmodels.cpp
-        COMMAND echo `pwd`
-        DEPENDS lmodeldat ${SRC_DIR}/create_wrapper_xspec.py ${SRC_DIR}/${LMODEL_NAME}
+        OUTPUT xspec_wrapper_lmodels.cpp xspec_wrapper_lmodels.h
+        COMMAND Python::Interpreter ${SRC_DIR}/create_wrapper_xspec.py
+        ${LMODEL_NAME} xspec_wrapper_lmodels.cpp
+        COMMAND ${CMAKE_COMMAND} -E echo ${CMAKE_CURRENT_BINARY_DIR}
+        DEPENDS lmodeldat ${SRC_DIR}/create_wrapper_xspec.py ${LMODEL_NAME}
         )
 
 add_custom_target(xspec_wrapper ALL DEPENDS xspec_wrapper_lmodels.cpp xspec_wrapper_lmodels.h)

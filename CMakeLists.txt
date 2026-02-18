@@ -26,4 +26,5 @@ set(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR})
 add_subdirectory(${SRC_DIR})
 add_subdirectory(test)
 
+target_include_directories(Relxill INTERFACE $ENV{HEADAS}/include)
 
