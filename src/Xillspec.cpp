@@ -55,7 +55,7 @@ EnerGrid *get_relxill_conv_energy_grid() {
 
 
 
-xillSpec *get_xillver_spectra_table(xillTableParam *param, int *status) {
+xillSpec *get_xillver_spectra_table(const xillTableParam *param, int *status) {
 
   CHECK_STATUS_RET(*status, nullptr);
 
